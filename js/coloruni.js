@@ -20,15 +20,15 @@ function init() {
 
     var colors = {
         rmin: 0,
-        rmax: 360,
+        rmax: 255,
         rncube: params.ncube,
         rstep: params.step,
         gmin: 0,
-        gmax: 100,
+        gmax: 255,
         gncube: params.ncube,
         gstep: params.step,
         bmin: 0,
-        bmax: 100,
+        bmax: 255,
         bncube: params.ncube,
         bstep: params.step
     }
@@ -65,10 +65,10 @@ function init() {
 
     var red = gui.addFolder('Red');
 
-    red.add(colors, 'rmin').min(0).max(360).step(1).onChange(function (e) {
+    red.add(colors, 'rmin').min(0).max(255).step(1).onChange(function (e) {
         adjustCubeColor();
     });
-    red.add(colors, 'rmax').min(0).max(360).step(1).onChange(function (e) {
+    red.add(colors, 'rmax').min(0).max(255).step(1).onChange(function (e) {
         adjustCubeColor();
     });
     red.add(colors, 'rncube').min(5).max(50).step(1).listen().onChange(function (e) {
@@ -82,10 +82,10 @@ function init() {
 
     var green = gui.addFolder('Green');
 
-    green.add(colors, 'gmin').min(0).max(100).step(1).onChange(function (e) {
+    green.add(colors, 'gmin').min(0).max(255).step(1).onChange(function (e) {
         adjustCubeColor();
     });
-    green.add(colors, 'gmax').min(0).max(100).step(1).onChange(function (e) {
+    green.add(colors, 'gmax').min(0).max(255).step(1).onChange(function (e) {
         adjustCubeColor();
     });
     green.add(colors, 'gncube').min(5).max(50).step(1).listen().onChange(function (e) {
@@ -99,10 +99,10 @@ function init() {
 
     var blue = gui.addFolder('Blue');
 
-    blue.add(colors, 'bmin').min(0).max(100).step(1).onChange(function (e) {
+    blue.add(colors, 'bmin').min(0).max(255).step(1).onChange(function (e) {
         adjustCubeColor();
     });
-    blue.add(colors, 'bmax').min(0).max(100).step(1).onChange(function (e) {
+    blue.add(colors, 'bmax').min(0).max(255).step(1).onChange(function (e) {
         adjustCubeColor();
     });
     blue.add(colors, 'bncube').min(5).max(50).step(1).listen().onChange(function (e) {
@@ -211,10 +211,7 @@ function init() {
 
 
 
-                    material = new THREE.MeshBasicMaterial( {color: new THREE.Color().setHSL((i*colors.rstep+colors.rmin)/360, (j*colors.gstep+colors.gmin)/100, (k*colors.bstep+colors.bmin)/100)} );
-                    
-                    //console.log((i*colors.rstep+colors.rmin)/360+"-"+(j*colors.gstep+colors.gmin)/100+"-"+(k*colors.bstep+colors.bmin)/100);
-
+                    material = new THREE.MeshBasicMaterial( {color: "rgb("+(i*colors.rstep+colors.rmin)+","+(j*colors.gstep+colors.gmin)+","+(k*colors.bstep+colors.bmin)+")"} );
                     cubes[i][j][k] = new THREE.Mesh( geometry, material );
 
                     if(params.mode==1) {
