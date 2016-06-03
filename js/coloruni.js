@@ -4,15 +4,10 @@ function init() {
     //VAR
 
     var cube, geometry, material;
-
-    //GUI
-
-    var gui = new dat.GUI({
-        height : 5 * 32 - 1
-    });
+    var NCOLORS = 256;
 
     var params = {
-        color: 256,
+        color: NCOLORS,
         ncube: 10,
         step: 25,
         mode: 1
@@ -20,61 +15,63 @@ function init() {
 
     var colors = {
         rmin: 0,
-        rmax: 255,
+        rmax: NCOLORS - 1,
         rncube: params.ncube,
         rstep: params.step,
         gmin: 0,
-        gmax: 255,
+        gmax: NCOLORS - 1,
         gncube: params.ncube,
         gstep: params.step,
         bmin: 0,
-        bmax: 255,
+        bmax: NCOLORS - 1,
         bncube: params.ncube,
         bstep: params.step
-    }
+    };
 
-    //INIT
+    //GUI
 
-    gui.add(params, 'ncube').min(5).max(50).step(1).listen().onChange(function (e) {
+    var gui = new dat.GUI({});
 
-        colors.rncube=params.ncube;
-        colors.gncube=params.ncube;
-        colors.bncube=params.ncube;
+    gui.add(params, 'mode', [1, 2]).onChange(function(e) {
 
-        params.step=Math.floor(256/params.ncube);
+    });
+
+    gui.add(params, 'ncube').min(5).max(50).step(1).listen().onChange(function(e) {
+
+        colors.rncube = params.ncube;
+        colors.gncube = params.ncube;
+        colors.bncube = params.ncube;
+
+        params.step = Math.floor(NCOLORS / params.ncube);
 
         adjustCubeColor();
 
     });
 
-    gui.add(params, 'step').min(1).max(127).step(5).listen().onChange(function (e) {
+    gui.add(params, 'step').min(5).max(50).step(5).listen().onChange(function(e) {
 
-        colors.rstep=params.step;
-        colors.gstep=params.step;
-        colors.bstep=params.step;
+        colors.rstep = params.step;
+        colors.gstep = params.step;
+        colors.bstep = params.step;
 
-        params.ncube=Math.floor(256/params.step);
+        params.ncube = Math.floor(NCOLORS / params.step);
 
         adjustStepColor();
 
     });
 
-    gui.add(params, 'mode', [1, 2]).onChange(function (e) {
-
-    });
-
     var red = gui.addFolder('Red');
 
-    red.add(colors, 'rmin').min(0).max(255).step(1).onChange(function (e) {
+    red.add(colors, 'rmin').min(0).max(255).step(1).onChange(function(e) {
         adjustCubeColor();
     });
-    red.add(colors, 'rmax').min(0).max(255).step(1).onChange(function (e) {
+    red.add(colors, 'rmax').min(0).max(255).step(1).onChange(function(e) {
         adjustCubeColor();
     });
-    red.add(colors, 'rncube').min(5).max(50).step(1).listen().onChange(function (e) {
+    red.add(colors, 'rncube').min(5).max(50).step(1).listen().onChange(function(e) {
         adjustCubeColor();
     });
-    red.add(colors, 'rstep').min(1).max(127).step(1).listen().onChange(function (e) {
+    red.add(colors, 'rstep').min(1).max(127).step(1).listen().onChange(function(e) {
         adjustStepColor();
     });
 
@@ -82,16 +79,16 @@ function init() {
 
     var green = gui.addFolder('Green');
 
-    green.add(colors, 'gmin').min(0).max(255).step(1).onChange(function (e) {
+    green.add(colors, 'gmin').min(0).max(255).step(1).onChange(function(e) {
         adjustCubeColor();
     });
-    green.add(colors, 'gmax').min(0).max(255).step(1).onChange(function (e) {
+    green.add(colors, 'gmax').min(0).max(255).step(1).onChange(function(e) {
         adjustCubeColor();
     });
-    green.add(colors, 'gncube').min(5).max(50).step(1).listen().onChange(function (e) {
+    green.add(colors, 'gncube').min(5).max(50).step(1).listen().onChange(function(e) {
         adjustCubeColor();
     });
-    green.add(colors, 'gstep').min(1).max(127).step(1).listen().onChange(function (e) {
+    green.add(colors, 'gstep').min(1).max(127).step(1).listen().onChange(function(e) {
         adjustStepColor();
     });
 
@@ -99,20 +96,22 @@ function init() {
 
     var blue = gui.addFolder('Blue');
 
-    blue.add(colors, 'bmin').min(0).max(255).step(1).onChange(function (e) {
+    blue.add(colors, 'bmin').min(0).max(255).step(1).onChange(function(e) {
         adjustCubeColor();
     });
-    blue.add(colors, 'bmax').min(0).max(255).step(1).onChange(function (e) {
+    blue.add(colors, 'bmax').min(0).max(255).step(1).onChange(function(e) {
         adjustCubeColor();
     });
-    blue.add(colors, 'bncube').min(5).max(50).step(1).listen().onChange(function (e) {
+    blue.add(colors, 'bncube').min(5).max(50).step(1).listen().onChange(function(e) {
         adjustCubeColor();
     });
-    blue.add(colors, 'bstep').min(1).max(127).step(1).listen().onChange(function (e) {
+    blue.add(colors, 'bstep').min(1).max(127).step(1).listen().onChange(function(e) {
         adjustStepColor();
     });
 
     blue.open();
+
+    //INIT
 
     var stats = initStats();
     var cubes = new Array(colors.rncube);
@@ -151,13 +150,12 @@ function init() {
 
     render();
 
-    function emptycube () {
+    function emptycube() {
 
-        for(var i = 0; i < cubes.length; i++) {
-            for(var j = 0; j < cubes[i].length; j++) {
-                for(var k = 0; k < cubes[i][j].length; k++) {
+        for (var i = 0; i < cubes.length; i++) {
+            for (var j = 0; j < cubes[i].length; j++) {
+                for (var k = 0; k < cubes[i][j].length; k++) {
                     scene.remove(cubes[i][j][k]);
-                    
                 }
             }
         }
@@ -165,7 +163,7 @@ function init() {
     }
 
     function reCenter() {
-       
+
         cubes = new Array(colors.rncube);
         center = new THREE.Vector3(colors.rncube, colors.gncube, colors.bncube);
         camera.lookAt(center);
@@ -174,26 +172,26 @@ function init() {
     }
 
     function adjustCubeColor() {
-        
+
         emptycube();
         reCenter();
 
-        colors.rstep=Math.floor((colors.rmax-colors.rmin)/colors.rncube);
-        colors.gstep=Math.floor((colors.gmax-colors.gmin)/colors.gncube);
-        colors.bstep=Math.floor((colors.bmax-colors.bmin)/colors.bncube);
+        colors.rstep = Math.floor((colors.rmax - colors.rmin) / colors.rncube);
+        colors.gstep = Math.floor((colors.gmax - colors.gmin) / colors.gncube);
+        colors.bstep = Math.floor((colors.bmax - colors.bmin) / colors.bncube);
 
         createMesh();
 
     }
 
     function adjustStepColor() {
-        
+
         emptycube();
         reCenter();
 
-        colors.rncube=Math.floor((colors.rmax-colors.rmin)/colors.rstep);
-        colors.gncube=Math.floor((colors.gmax-colors.gmin)/colors.gstep);
-        colors.bncube=Math.floor((colors.bmax-colors.bmin)/colors.bstep);
+        colors.rncube = Math.floor((colors.rmax - colors.rmin) / colors.rstep);
+        colors.gncube = Math.floor((colors.gmax - colors.gmin) / colors.gstep);
+        colors.bncube = Math.floor((colors.bmax - colors.bmin) / colors.bstep);
 
         createMesh();
 
@@ -201,24 +199,24 @@ function init() {
 
     function createMesh(geom) {
 
-        geometry = new THREE.BoxGeometry( 1, 1, 1 );
+        geometry = new THREE.BoxGeometry(1, 1, 1);
 
-        for(var i = 0; i < colors.rncube; i++) {
+        for (var i = 0; i < colors.rncube; i++) {
             cubes[i] = new Array(colors.gncube);
-            for(var j = 0; j < colors.gncube; j++) {
+            for (var j = 0; j < colors.gncube; j++) {
                 cubes[i][j] = new Array(colors.bncube);
-                for(var k = 0; k < colors.bncube; k++) {
+                for (var k = 0; k < colors.bncube; k++) {
 
+                    material = new THREE.MeshBasicMaterial({
+                        color: "rgb(" + (i * colors.rstep + colors.rmin) + "," + (j * colors.gstep + colors.gmin) + "," + (k * colors.bstep + colors.bmin) + ")"
+                    });
+                    cubes[i][j][k] = new THREE.Mesh(geometry, material);
 
-
-                    material = new THREE.MeshBasicMaterial( {color: "rgb("+(i*colors.rstep+colors.rmin)+","+(j*colors.gstep+colors.gmin)+","+(k*colors.bstep+colors.bmin)+")"} );
-                    cubes[i][j][k] = new THREE.Mesh( geometry, material );
-
-                    if(params.mode==1) {
-                        cubes[i][j][k].position.set((i*2),(j*2),(k*2));
+                    if (params.mode == 1) {
+                        cubes[i][j][k].position.set((i * 2), (j * 2), (k * 2));
                     } else {
-                        var newpos = CIEcoord((i*colors.rstep+colors.rmin), (j*colors.gstep+colors.gmin), (k*colors.bstep+colors.bmin));
-                        cubes[i][j][k].position.set(newpos.x,newpos.y,newpos.z);
+                        var newpos = CIEcoord((i * colors.rstep + colors.rmin), (j * colors.gstep + colors.gmin), (k * colors.bstep + colors.bmin));
+                        cubes[i][j][k].position.set(newpos.x, newpos.y, newpos.z);
                     }
 
 
@@ -231,17 +229,21 @@ function init() {
 
     function CIEcoord(R, G, B) {
 
-        var result={x: 0, y: 0, z:0};
-        result.x=R*0.49+G*0.31+B*0.20;
-        result.y=R*0.17697+G*0.81240+B*0.02063;
-        result.z=R*0+G*0.01+B*0.99;
-        
-        //var c=0.17697;
-        var c=5;
+        var result = {
+            x: 0,
+            y: 0,
+            z: 0
+        };
+        result.x = R * 0.49 + G * 0.31 + B * 0.20;
+        result.y = R * 0.17697 + G * 0.81240 + B * 0.02063;
+        result.z = R * 0 + G * 0.01 + B * 0.99;
 
-        result.x/=c;
-        result.y/=c;
-        result.z/=c;
+        //var c=0.17697;
+        var c = 5;
+
+        result.x /= c;
+        result.y /= c;
+        result.z /= c;
 
         return result;
     }
