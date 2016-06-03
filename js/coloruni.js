@@ -1,9 +1,8 @@
-// once everything is loaded, we run our Three.js stuff.
-function init() {
+(function() {
 
     //VAR
 
-    var cube, geometry, material;
+    var cubes, scene, camera, geometry, group, orbitControls, ray, stats, clock, webGLRenderer;
     var NCOLORS = 256;
 
     var params = {
@@ -11,6 +10,11 @@ function init() {
         ncube: 10,
         step: 25,
         mode: 1
+    };
+
+    var color = {
+        actual: [0, 0, 0],
+        picked: [0, 0, 0]
     };
 
     var colors = {
@@ -28,144 +32,102 @@ function init() {
         bstep: params.step
     };
 
-    //GUI
+    function setupGUI() {
 
-    var gui = new dat.GUI({});
+        var gui = new dat.GUI({});
 
-    gui.add(params, 'mode', [1, 2]).onChange(function(e) {
+        gui.add(params, 'mode', [1, 2]).onChange(function(e) {
 
-    });
+        });
 
-    gui.add(params, 'ncube').min(5).max(50).step(1).listen().onChange(function(e) {
+        gui.add(params, 'ncube').min(5).max(50).step(1).listen().onChange(function(e) {
 
-        colors.rncube = params.ncube;
-        colors.gncube = params.ncube;
-        colors.bncube = params.ncube;
+            colors.rncube = params.ncube;
+            colors.gncube = params.ncube;
+            colors.bncube = params.ncube;
 
-        params.step = Math.floor(NCOLORS / params.ncube);
+            params.step = Math.floor(NCOLORS / params.ncube);
 
-        adjustCubeColor();
+            adjustCubeColor();
 
-    });
+        });
 
-    gui.add(params, 'step').min(5).max(50).step(5).listen().onChange(function(e) {
+        gui.add(params, 'step').min(5).max(50).step(5).listen().onChange(function(e) {
 
-        colors.rstep = params.step;
-        colors.gstep = params.step;
-        colors.bstep = params.step;
+            colors.rstep = params.step;
+            colors.gstep = params.step;
+            colors.bstep = params.step;
 
-        params.ncube = Math.floor(NCOLORS / params.step);
+            params.ncube = Math.floor(NCOLORS / params.step);
 
-        adjustStepColor();
+            adjustStepColor();
 
-    });
+        });
 
-    var red = gui.addFolder('Red');
+        var red = gui.addFolder('Red');
 
-    red.add(colors, 'rmin').min(0).max(255).step(1).onChange(function(e) {
-        adjustCubeColor();
-    });
-    red.add(colors, 'rmax').min(0).max(255).step(1).onChange(function(e) {
-        adjustCubeColor();
-    });
-    red.add(colors, 'rncube').min(5).max(50).step(1).listen().onChange(function(e) {
-        adjustCubeColor();
-    });
-    red.add(colors, 'rstep').min(1).max(127).step(1).listen().onChange(function(e) {
-        adjustStepColor();
-    });
+        red.add(colors, 'rmin').min(0).max(255).step(1).onChange(function(e) {
+            adjustCubeColor();
+        });
+        red.add(colors, 'rmax').min(0).max(255).step(1).onChange(function(e) {
+            adjustCubeColor();
+        });
+        red.add(colors, 'rncube').min(5).max(50).step(1).listen().onChange(function(e) {
+            adjustCubeColor();
+        });
+        red.add(colors, 'rstep').min(1).max(127).step(1).listen().onChange(function(e) {
+            adjustStepColor();
+        });
 
-    red.open();
+        red.open();
 
-    var green = gui.addFolder('Green');
+        var green = gui.addFolder('Green');
 
-    green.add(colors, 'gmin').min(0).max(255).step(1).onChange(function(e) {
-        adjustCubeColor();
-    });
-    green.add(colors, 'gmax').min(0).max(255).step(1).onChange(function(e) {
-        adjustCubeColor();
-    });
-    green.add(colors, 'gncube').min(5).max(50).step(1).listen().onChange(function(e) {
-        adjustCubeColor();
-    });
-    green.add(colors, 'gstep').min(1).max(127).step(1).listen().onChange(function(e) {
-        adjustStepColor();
-    });
+        green.add(colors, 'gmin').min(0).max(255).step(1).onChange(function(e) {
+            adjustCubeColor();
+        });
+        green.add(colors, 'gmax').min(0).max(255).step(1).onChange(function(e) {
+            adjustCubeColor();
+        });
+        green.add(colors, 'gncube').min(5).max(50).step(1).listen().onChange(function(e) {
+            adjustCubeColor();
+        });
+        green.add(colors, 'gstep').min(1).max(127).step(1).listen().onChange(function(e) {
+            adjustStepColor();
+        });
 
-    green.open();
+        green.open();
 
-    var blue = gui.addFolder('Blue');
+        var blue = gui.addFolder('Blue');
 
-    blue.add(colors, 'bmin').min(0).max(255).step(1).onChange(function(e) {
-        adjustCubeColor();
-    });
-    blue.add(colors, 'bmax').min(0).max(255).step(1).onChange(function(e) {
-        adjustCubeColor();
-    });
-    blue.add(colors, 'bncube').min(5).max(50).step(1).listen().onChange(function(e) {
-        adjustCubeColor();
-    });
-    blue.add(colors, 'bstep').min(1).max(127).step(1).listen().onChange(function(e) {
-        adjustStepColor();
-    });
+        blue.add(colors, 'bmin').min(0).max(255).step(1).onChange(function(e) {
+            adjustCubeColor();
+        });
+        blue.add(colors, 'bmax').min(0).max(255).step(1).onChange(function(e) {
+            adjustCubeColor();
+        });
+        blue.add(colors, 'bncube').min(5).max(50).step(1).listen().onChange(function(e) {
+            adjustCubeColor();
+        });
+        blue.add(colors, 'bstep').min(1).max(127).step(1).listen().onChange(function(e) {
+            adjustStepColor();
+        });
 
-    blue.open();
+        blue.open();
 
-    //INIT
+        gui.addColor(color, 'actual').listen().onChange(function(e) {});
+    }
 
-    var stats = initStats();
-    var cubes = new Array(colors.rncube);
-    var scene = new THREE.Scene();
-    var center = new THREE.Vector3(colors.rncube, colors.gncube, colors.bncube);
 
-    var camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
-
-    // create a render and set the size
-    var webGLRenderer = new THREE.WebGLRenderer();
-    webGLRenderer.setClearColor(new THREE.Color(0xffffff, 1.0));
-    webGLRenderer.setSize(window.innerWidth, window.innerHeight);
-    webGLRenderer.shadowMapEnabled = false;
-
-    createMesh();
-
-    camera.position.x = 0;
-    camera.position.y = 150;
-    camera.position.z = 0;
-    camera.lookAt(center);
-
-    var orbitControls = new THREE.OrbitControls(camera, webGLRenderer.domElement);
-    orbitControls.autoRotate = false;
-    var clock = new THREE.Clock();
-
-    orbitControls.center = center;
-
-    var ambiLight = new THREE.AmbientLight(0x111111);
-    scene.add(ambiLight);
-    var spotLight = new THREE.DirectionalLight(0xffffff);
-    spotLight.position.set(-20, 30, 40);
-    spotLight.intensity = 1.5;
-    scene.add(spotLight);
-
-    document.getElementById("WebGL-output").appendChild(webGLRenderer.domElement);
-
-    render();
 
     function emptycube() {
-
-        for (var i = 0; i < cubes.length; i++) {
-            for (var j = 0; j < cubes[i].length; j++) {
-                for (var k = 0; k < cubes[i][j].length; k++) {
-                    scene.remove(cubes[i][j][k]);
-                }
-            }
-        }
-
+        scene.remove(group);
     }
 
     function reCenter() {
 
         cubes = new Array(colors.rncube);
-        center = new THREE.Vector3(colors.rncube, colors.gncube, colors.bncube);
+        var center = new THREE.Vector3(colors.rncube - 1, colors.gncube - 1, colors.bncube - 1);
         camera.lookAt(center);
         orbitControls.center = center;
 
@@ -197,9 +159,9 @@ function init() {
 
     }
 
-    function createMesh(geom) {
+    function createMesh() {
 
-        geometry = new THREE.BoxGeometry(1, 1, 1);
+        group = new THREE.Group();
 
         for (var i = 0; i < colors.rncube; i++) {
             cubes[i] = new Array(colors.gncube);
@@ -220,11 +182,14 @@ function init() {
                     }
 
 
-                    scene.add(cubes[i][j][k]);
+                    group.add(cubes[i][j][k]);
 
                 }
             }
         }
+
+        scene.add(group);
+
     }
 
     function CIEcoord(R, G, B) {
@@ -248,9 +213,29 @@ function init() {
         return result;
     }
 
+    var raycaster = new THREE.Raycaster();
+    var mouse = new THREE.Vector2();
+
+
+    function onMouseMove(event) {
+        event.preventDefault();
+        mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+        mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+    }
+
     function render() {
         stats.update();
 
+        // update the picking ray with the camera and mouse position
+        raycaster.setFromCamera(mouse, camera);
+
+        // calculate objects intersecting the picking ray
+        var intersects = raycaster.intersectObjects(group.children);
+
+        if (intersects.length > 0) {
+            var c = intersects[0].object.material.color;
+            color.actual = [c.r * 255, c.g * 255, c.b * 255];
+        }
         //sphere.rotation.y=step+=0.01;
         var delta = clock.getDelta();
         orbitControls.update(delta);
@@ -262,7 +247,7 @@ function init() {
 
     function initStats() {
 
-        var stats = new Stats();
+        stats = new Stats();
         stats.setMode(0); // 0: fps, 1: ms
 
         // Align top-left
@@ -272,6 +257,57 @@ function init() {
 
         document.getElementById("Stats-output").appendChild(stats.domElement);
 
-        return stats;
+        //return stats;
     }
-}
+
+    // once everything is loaded, we run our Three.js stuff.
+    function init() {
+
+        //init
+
+        cubes = new Array(colors.rncube);
+        scene = new THREE.Scene();
+        camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
+        geometry = new THREE.BoxGeometry(1, 1, 1);
+
+        initStats();
+
+        // create a render and set the size
+        webGLRenderer = new THREE.WebGLRenderer({
+            antialias: true
+        });
+        webGLRenderer.setClearColor(new THREE.Color("#ffffff"));
+        webGLRenderer.setSize(window.innerWidth, window.innerHeight);
+        webGLRenderer.shadowMap.enabled = false;
+
+        camera.position.x = 0;
+        camera.position.y = 150;
+        camera.position.z = 0;
+
+        orbitControls = new THREE.OrbitControls(camera, webGLRenderer.domElement);
+        orbitControls.autoRotate = false;
+
+        clock = new THREE.Clock();
+
+        var ambiLight = new THREE.AmbientLight(0x111111);
+        scene.add(ambiLight);
+        var spotLight = new THREE.DirectionalLight(0xffffff);
+        spotLight.position.set(-20, 30, 40);
+        spotLight.intensity = 1.5;
+        scene.add(spotLight);
+
+        document.getElementById("WebGL-output").appendChild(webGLRenderer.domElement);
+
+        document.addEventListener('mousemove', onMouseMove, false);
+
+
+        createMesh();
+        reCenter();
+
+    }
+
+    setupGUI();
+    init();
+    render();
+
+})();
