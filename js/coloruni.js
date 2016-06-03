@@ -3,7 +3,11 @@
     //VAR
 
     var cubes, scene, camera, geometry, group, orbitControls, ray, stats, clock, webGLRenderer;
+    var INTERSECTED, PICKED;
     var NCOLORS = 256;
+
+    var raycaster = new THREE.Raycaster();
+    var mouse = new THREE.Vector2();
 
     var params = {
         color: NCOLORS,
@@ -116,9 +120,9 @@
         blue.open();
 
         gui.addColor(color, 'actual').listen().onChange(function(e) {});
+        gui.addColor(color, 'picked').listen().onChange(function(e) {});
+
     }
-
-
 
     function emptycube() {
         scene.remove(group);
@@ -170,7 +174,8 @@
                 for (var k = 0; k < colors.bncube; k++) {
 
                     material = new THREE.MeshBasicMaterial({
-                        color: "rgb(" + (i * colors.rstep + colors.rmin) + "," + (j * colors.gstep + colors.gmin) + "," + (k * colors.bstep + colors.bmin) + ")"
+                        color: "rgb(" + (i * colors.rstep + colors.rmin) + "," + (j * colors.gstep + colors.gmin) + "," + (k * colors.bstep + colors.bmin) + ")",
+                        wireframe: false
                     });
                     cubes[i][j][k] = new THREE.Mesh(geometry, material);
 
@@ -213,14 +218,43 @@
         return result;
     }
 
-    var raycaster = new THREE.Raycaster();
-    var mouse = new THREE.Vector2();
-
-
     function onMouseMove(event) {
         event.preventDefault();
         mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
         mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+    }
+
+    function onMouseClick(event) {
+        event.preventDefault();
+        mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+        mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+
+        raycaster.setFromCamera(mouse, camera);
+
+        // calculate objects intersecting the picking ray
+        var intersects = raycaster.intersectObjects(group.children);
+
+        if (intersects.length > 0) {
+
+            if (PICKED != intersects[0].object) {
+                if (PICKED && PICKED.helper) {
+                    scene.remove(PICKED.helper);
+                }
+                    PICKED = intersects[0].object;
+                    scene.remove(PICKED.helper);
+                    PICKED.helper = new THREE.BoxHelper(PICKED);
+                    PICKED.helper.material.color.set(0xffffff);
+                    scene.add(PICKED.helper);
+
+
+            } else {
+
+            }
+
+            var c = intersects[0].object.material.color;
+            color.picked = [c.r * 255, c.g * 255, c.b * 255];
+        }
+
     }
 
     function render() {
@@ -233,6 +267,29 @@
         var intersects = raycaster.intersectObjects(group.children);
 
         if (intersects.length > 0) {
+
+            if (INTERSECTED != intersects[0].object) {
+
+                if (INTERSECTED && INTERSECTED.helper) {
+                    if (INTERSECTED != PICKED) {
+                        scene.remove(INTERSECTED.helper);
+                    } else {
+                        scene.remove(INTERSECTED.helper);
+                        INTERSECTED.helper = new THREE.BoxHelper(INTERSECTED);
+                        INTERSECTED.helper.material.color.set(0xffffff);
+                        scene.add(INTERSECTED.helper);
+                    }
+                }
+                INTERSECTED = intersects[0].object;
+                INTERSECTED.helper = new THREE.BoxHelper(INTERSECTED);
+                INTERSECTED.helper.material.color.set(0x000000);
+                scene.add(INTERSECTED.helper);
+
+
+            } else {
+
+            }
+
             var c = intersects[0].object.material.color;
             color.actual = [c.r * 255, c.g * 255, c.b * 255];
         }
@@ -299,7 +356,7 @@
         document.getElementById("WebGL-output").appendChild(webGLRenderer.domElement);
 
         document.addEventListener('mousemove', onMouseMove, false);
-
+        document.addEventListener('click', onMouseClick, false);
 
         createMesh();
         reCenter();
